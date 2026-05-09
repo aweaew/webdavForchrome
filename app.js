@@ -155,12 +155,34 @@ document.addEventListener('DOMContentLoaded', () => {
         profiles.forEach((p) => {
             const div = document.createElement('div');
             div.className = `account-item ${currentProfile?.id === p.id ? 'active' : ''}`;
-            div.innerHTML = `<div class="account-info"><div class="account-name">${p.name}</div><div class="account-url">${p.url}</div></div><div class="account-actions"><button class="del-btn">删除</button></div>`;
+            
+            // 【修复】这里重新加回了 edit-btn (编辑按钮)
+            div.innerHTML = `
+                <div class="account-info">
+                    <div class="account-name">${p.name}</div>
+                    <div class="account-url">${p.url}</div>
+                </div>
+                <div class="account-actions">
+                    <button class="edit-btn">编辑</button>
+                    <button class="del-btn">删除</button>
+                </div>
+            `;
 
             div.querySelector('.account-info').addEventListener('click', () => {
                 currentProfile = p; renderProfiles(); pathStack = [{ name: p.name, url: p.url }];
                 clipboard = []; pasteBtn.style.display = 'none';
                 loadDirectory(p.url);
+            });
+
+            // 【修复】重新加回了编辑按钮的点击事件
+            div.querySelector('.edit-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('editId').value = p.id;
+                document.getElementById('confName').value = p.name;
+                document.getElementById('confUrl').value = p.url;
+                document.getElementById('confUser').value = p.user;
+                document.getElementById('confPass').value = p.pass;
+                configForm.style.display = 'block';
             });
 
             div.querySelector('.del-btn').addEventListener('click', (e) => {
@@ -178,14 +200,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('addProfileBtn').addEventListener('click', () => configForm.style.display = 'block');
     document.getElementById('cancelProfileBtn').addEventListener('click', () => configForm.style.display = 'none');
     document.getElementById('saveProfileBtn').addEventListener('click', () => {
+        const id = document.getElementById('editId').value;
         const name = document.getElementById('confName').value.trim();
         let url = document.getElementById('confUrl').value.trim();
         const user = document.getElementById('confUser').value.trim();
         const pass = document.getElementById('confPass').value.trim();
         if(!name || !url || !user || !pass) return showMsg('请填写完整信息');
         if(!url.endsWith('/')) url += '/';
-        profiles.push({ id: Date.now().toString(), name, url, user, pass });
-        saveProfiles(); configForm.style.display = 'none';
+        
+        // 【修复】加上判断：如果有 id 说明是编辑，没有 id 说明是新增
+        if(id) {
+            const idx = profiles.findIndex(p => p.id === id);
+            if(idx > -1) profiles[idx] = { id, name, url, user, pass };
+        } else {
+            profiles.push({ id: Date.now().toString(), name, url, user, pass });
+        }
+        
+        saveProfiles(); 
+        configForm.style.display = 'none';
     });
 
     function getAuth() { return 'Basic ' + btoa(currentProfile.user + ":" + currentProfile.pass); }
