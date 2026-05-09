@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "WebDAV Manager Pro",
+  "version": "2.0",
+  "description": "支持多账号、下载、重命名的高级 WebDAV 管理插件",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "打开 WebDAV 管理器"
+  },
+  "permissions": [
+    "storage",
+    "downloads"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
